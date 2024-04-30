@@ -1,0 +1,79 @@
+{% extends "layout.html"%}
+{%load static%}
+{%block  navbar_button%} <a href="{% url 'how_it_works'%}">How it Works</a>{%endblock%}
+{%block  navbar2_button%} <a href="{% url 'login'%}" class="login_btn">Login</a>  {%endblock%}
+
+{% block body%}
+
+
+<section class="main_page_section1">
+     <div class="left-panel">
+        <h2>Together, we learn, <br>
+            grow and succeed.</h2>
+        <p>Join us on Ask2Peer and <br> unlock the potential of <br>peer learning.</p>
+        <div class="main-first-section-btn">
+            <a href="{%url 'how_it_works'%}" >Learn More</a>
+            <a href="{% url 'register'%}">Sign Up</a>
+        </div>
+    </div>
+    <div class="right-panel">
+        <img style="width:400px; height: auto; margin-top: 30px;" src="{% static 'app_img/Main_Page_1.png' %}" alt="My image">
+    </div>
+
+</section>
+<section class="main_page_section2">
+    <div class="left-panel2">
+       <h3>No more struggling alone!</h3>
+       <p style="margin-left: 30px;">Dive into discussions, contribute your knowledge, and build <br> connections with like-minded students.</p>
+   </div>
+   <div class="right-panel2">
+       <img style="width:200px; height: auto; margin-top: 30px;" src="{% static 'app_img/Main_Page_2.png' %}">
+   </div>
+</section>
+<div class="line"></div>
+<section class="main_page_section2">
+    <div class="left-panel2">
+       <h3 style="margin-left: 30px;">Improve math skills</h3>
+       <p style="margin-left: 45px;">They say the best way to master a concept is to teach it. <br>
+        On Ask2Peers, you can reinforce your own understanding of math <br> by helping others. <br>
+        
+        Share your knowledge, explain solutions, and reinforce your <br> learning through teaching. A win-win for both you and your peers.</p>
+   </div>
+   <div class="right-panel2">
+       <img style="width:200px; height: auto; margin-top: 30px;" src="{% static 'app_img/Main_Page_3.png' %}">
+   </div>
+</section>
+<div class="line"></div>
+<section class="main_page_section3">
+    <div class="left-panel3">
+       <h3>Mission</h3>
+        <p >Welcome to Ask2Peers, the ultimate platform designed to empower high school and college  students in their quest for knowledge! <br> Are you grappling with challenging questions,
+            seeking insights, or simply craving a fresh perspective on your coursework? 
+            Look no <br> further  – Ask2Peers is here to revolutionize the way you learn.</p>
+   </div>
+</section>
+<section class="main_page_section3">
+    <div class="left-panel3">
+       <h3 style="margin-top: 30px;">Our Team</h3>
+        <div class="creater_imgs">
+            <div>
+                <img src="{% static 'app_img/Emre_Main_Page.png' %}" alt="Emre Karakaş"> 
+                <div style="margin-left: 30px;">Emre Karakaş</div>
+            </div>
+            <div>
+            <img src="{% static 'app_img/yiğit_Main_Page.png' %}">
+            <div style="margin-left: 30px;">Yiğit Ak</div>
+            </div>
+            <div>
+            <img src="{% static 'app_img/Melih_Main_Page.png' %}">
+            <div style="margin-left: 30px;">Melih Ercan</div>
+            </div>
+            <div>
+            <img src="{% static 'app_img/Mert_Main_Page.png' %}">
+            <div style="margin-left: 30px;">Mert Altıntaş</div>
+        </div>
+        </div>
+   </div>
+</section>
+<div class="line"></div>
+{%endblock%}

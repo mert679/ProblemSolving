@@ -1,0 +1,44 @@
+{% extends "layout.html"%}
+{%block  navbar_button%} <a href="{% url 'main'%}">Home</a> {%endblock%}
+{%block  navbar2_button%} <a  style="margin-left: 20px;" href="{% url 'how_it_works'%}">How it Works</a> {%endblock%}
+{% block body%}
+{% if message %}
+<div id="myModal">
+  {% if "Invalid username" in message %}
+    <div class="alert alert-danger" role="alert">
+      <h4 class="alert-heading">Error!</h4>
+      <div class="msg-context">
+        <p>{{ message }}</p>
+        <div class="close">&times;</div>
+          </div>
+    </div>
+  {% endif %}
+</div>
+{% endif %}
+<section class="login_page">
+    <h2>Login</h2>
+    <form  method="post" class="login_form">
+        {% csrf_token %}
+            <label >Username </label>
+            <input type="text" name="username">
+            <label >Password</label>
+            <input  type="password" name="password" >
+          
+            <button >Login</button>
+        </form>
+        <div class="login-page-direct">
+        <span>Not have an account?</span><a href="{% url 'register'%}">Sign up here</a>
+    </div>
+</section>
+{%endblock%}
+
+{% block script %}
+<script>
+    
+    const closeBtn = document.getElementsByClassName("close")[0];
+closeBtn.addEventListener("click", function() {
+    var modal = document.getElementById("myModal");
+    modal.style.display = "none";
+});
+</script>
+{% endblock %}

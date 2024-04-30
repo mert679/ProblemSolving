@@ -1,0 +1,48 @@
+{% extends "layout.html"%}
+{%load static%}
+
+{%block  navbar_button%} <a href="{% url 'main'%}">Home</a>{%endblock%}
+{%block  navbar2_button%}<a href="{% url 'login'%}" class="login_btn">Login</a> {%endblock%}
+{% block body%}
+<section class="works-page-section">
+    <div class="works-left-panel">
+       <h3 style="font-weight: bold;">How It Works?</h3>
+       <p style="margin-left: 30px;">Simply sign up for an account, then you can join rooms to share your questions, and engage with a community of peers who are ready to help.
+
+        Users can participate in discussions, share their knowledge, and collectively work towards understanding and solving academic challenges.</p>
+   </div>
+   <div class="works-right-panel2">
+       <img style="width:400px; height: auto; margin-top: 30px;" src="{% static 'app_img/Howtouse1.png' %}">
+   </div>
+</section>  
+<section class="main_page_section2">
+    <div class="left-panel2">
+       <h3>Step 1</h3>
+       <p style="margin-left: 30px;">First step is to  create your account and login, then you will have <br>an access to join a room to solve your question.</p>
+   </div>
+   <div class="right-panel2">
+       <img style="width:200px; height: auto; margin-top: 30px;" src="{% static 'app_img/Howtouse2.png' %}">
+   </div>
+</section>
+<div class="line"></div>
+<section class="main_page_section2">
+    <div class="left-panel2">
+       <h3 style="margin-left: 30px;">Step 2</h3>
+       <p style="margin-left: 40px;">After that you need to wait others to join you, you can join others as well.</p>
+   </div>
+   <div class="right-panel2">
+       <img style="width:200px; height: auto; margin-top: 30px;" src="{% static 'app_img/howtouse3.png' %}">
+   </div>
+</section>
+<div class="line"></div>
+<section class="main_page_section2">
+    <div class="left-panel2">
+       <h3 style="margin-left: 55px;">Step 3</h3>
+       <p style="margin-left: 69px;">Rooms designed to have 3 people. Room owner will share their  <br>question on interactive whiteboards and as a group you will solve the questions.</p>
+   </div>
+   <div class="right-panel2">
+       <img style="width:200px; height: auto; margin-top: 30px;" src="{% static 'app_img/howtouse4.png' %}">
+   </div>
+</section>
+<div class="line" style="margin-bottom: 50px;"></div>
+{%endblock%}

@@ -1,0 +1,60 @@
+{% extends "layout.html"%}
+{%block  navbar_button%} <a href="{% url 'main'%}">Home</a> {%endblock%}
+{%block  navbar2_button%} <a  style="margin-left: 20px;" href="{% url 'how_it_works'%}">How it Works</a> {%endblock%}
+{% block body%}
+{% if message %}
+<div id="myModal">
+  {% if "successfully created" in message %}
+    <div class="alert alert-success" role="alert">
+      <h4 class="alert-heading">Well done!</h4>
+      <p>{{ message }}</p>
+    </div>
+  {% elif "Passwords do not match" in message %}
+    <div class="alert alert-danger" role="alert">
+      <h4 class="alert-heading">Error!</h4>
+      <div class="msg-context">
+      <p>{{ message }}</p>
+      <div class="close">&times;</div>
+    </div>
+    </div>
+  {% elif "Username already taken" in message %}
+    <div class="alert alert-warning" role="alert">
+      <h4 class="alert-heading">Warning!</h4>
+      <p>{{ message }}</p>
+      <span class="close">&times;</span>
+    </div>
+  {% endif %}
+</div>
+{% endif %}
+
+
+<section class="signup_page">
+    <h2>Sign Up</h2>
+    <form  method="post" class="signup_form">
+        {% csrf_token %}
+            <label >Username </label>
+            <input type="text" name="username" required>
+            <label >Email address </label>
+            <input  type="email" name="email" required>
+            <label >Password</label>
+            <input  type="password" name="password" required>
+            <label >Confirm Password</label>
+            <input  type="password" name="password2" required>
+            <button >Sign Up</button>
+        </form>
+        <div class="login-page-direct">
+        <span>Already have an account?</span><a href="{% url 'login'%}">Login here</a>
+    </div>
+</section>
+
+{%endblock%}
+{% block script %}
+<script>
+    
+    const closeBtn = document.getElementsByClassName("close")[0];
+closeBtn.addEventListener("click", function() {
+    var modal = document.getElementById("myModal");
+    modal.style.display = "none";
+});
+</script>
+{% endblock %}

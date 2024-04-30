@@ -1,0 +1,530 @@
+{% extends "layout.html"%}
+
+{%block  navbar3_button%} <a class="home-page-nav-btn logout" style="margin-left: 20px;" id= "leave-room-btn">Quit</a> {%endblock%}
+
+{% block body%}
+<div id="remaining-time"  style="color: red; float: right; margin-right: 100px;"> </div>
+<a id="whiteboard_clear_btn" style=" margin-top: 2px; border: none; border-radius: 3px; background-color: gray; color: white; padding: 5px 15px; float: right; margin-right: 100px; cursor: pointer;">Clear</a>
+<section id="room_detail">
+    <div class="question-whiteboard">
+        <img  class="room-question-img" src="{{room.img_question.url}}" alt="" srcset="">
+        <canvas id="whiteboard" height = "650" width ="700">
+        </canvas>
+    </div>
+  
+    <div class="chat-wrapper">
+        <div id="chat-messages">
+            {%for message in messages%}
+            <div class="chat-message-card">
+                <div class="username_msg">{{message.user.username}}</div>
+                <p class="msg_content">{{message.content}}</p>
+            </div>
+            {%endfor%}
+            
+        </div>
+        <div id="local-video"></div>
+        <div class="text-msg">
+            <form method="post">
+                {% csrf_token %}
+                <div class="input-group mb-3" style="margin-top: 10px; padding: 10px 3px;">
+                    <input type="text" class="form-control" placeholder="Type a message ..." id="chat-message-input">
+                    <button class="btn btn-outline-secondary"  id="chat-message-submit">Submit</button>
+                    <a href="{%url 'whiteboard_empty'%}"  id="extra_whiteboard" target="_blank">Extra</a>
+                    <button id="speakButton">Speak</button>
+                    <!-- 
+                    <a href="" id="stopButton" disabled>Stop Voice</a>
+                 -->
+                 <audio id="remoteAudio" autoplay></audio>
+                </div>
+            </form>
+            
+        </div>
+    </div>
+</section>
+
+<style>
+    #extra_whiteboard{
+        padding: 5px 30px;
+    background-color: #2D9596;
+    margin-left: 10px;
+    color: white;
+    text-decoration: none;
+    }
+    #room_detail{
+    
+        margin: 3% auto;
+    }
+    .question-whiteboard{
+        display: flex;
+    }
+    .question-whiteboard .room-question-img{
+        width: 35%;
+        height: 300px;
+        object-fit: contain;
+        margin-left: 20px;
+    }
+    #whiteboard{
+        border: 1px solid saddlebrown;
+            width: 700px;
+            height: 650px;
+        margin-left: 100px;
+        cursor: pointer;
+    }
+    .chat-wrapper{
+        width: 480px;
+        position: absolute;
+        top: 435px;
+        left: 20px;
+
+    }
+    .chat-message-card{
+
+        background-color: rgb(209, 203, 203);
+        border-radius: 5px;
+        padding: 8px;
+        margin-top:3px ;
+    }
+    #chat-messages{
+        height: 270px;
+        overflow-y: auto;
+    }
+   
+    .chat-message-card .username_msg{
+        font-weight: bold;
+        font-size: 20px;
+    }
+    canvas {
+    border: 1px solid #000;
+    cursor: crosshair;
+}
+</style>
+
+{%endblock%}
+{% block script %}
+{{room.id|json_script:"json-roomname"}}
+{{ request.user.username|json_script:"json-username" }}
+
+<script>
+    const roomName= JSON.parse(document.getElementById("json-roomname").textContent);
+    const userName = JSON.parse(document.getElementById('json-username').textContent);
+  
+    const chatSocket = new WebSocket(
+        'ws://'
+        +'127.0.0.1:8001'
+        + '/ws/'
+        + roomName
+        +'/'
+    )
+    chatSocket.onopen = function (e) {
+            console.log('Connection opened');
+        };
+    chatSocket.onmessage = function(e){
+  
+        const data = JSON.parse(e.data);
+       
+        if (data.message) {
+            document.querySelector('#chat-messages').innerHTML += (  `<div class="chat-message-card">
+                <div class="username_msg">${data.username}</div>
+                <p class="msg_content">${data.message}</p>
+            </div>`);
+        } else {
+            alert('The message was empty!')
+        }
+
+        scrollToBottom();
+      
+    }
+    // document.querySelector('#chat-message-input').focus();
+    // document.querySelector('#chat-message-input').onkeyup = function(e) {
+    //     if (e.keyCode === 13) {
+    //         document.querySelector('#chat-message-submit').click();
+    //     }
+    // };
+    chatSocket.onclose = function(e){
+        console.log('onclose');
+    }
+    document.querySelector("#chat-message-submit").onclick = function(e) {
+        e.preventDefault()
+
+        const messageInputDom = document.querySelector('#chat-message-input');
+        const message = messageInputDom.value;
+
+        console.log({
+            'message': message,
+            'username': userName,
+            'room_id': roomName
+        })
+        if(message){
+            chatSocket.send(JSON.stringify({
+            'message': message,
+            'username': userName,
+            'room_id': roomName
+        }));
+        }
+       
+
+        messageInputDom.value = '';
+
+    };
+    function scrollToBottom() {
+        let objDiv = document.getElementById("chat-messages");
+        objDiv.scrollTop = objDiv.scrollHeight;
+    }
+
+
+   
+    // Fetch remaining time for the current room
+    function updateRemainingTime() {
+        $.ajax({
+            url: '/remaining-time/'+roomName +'/',
+            type: 'GET',
+            success: function(data) {
+                
+                
+                var remainingTimeStr = data.minutes.toString().padStart(2, '0') + ':' +
+                                        data.seconds.toString().padStart(2, '0');
+                $('#remaining-time').text(remainingTimeStr);
+                if (data.minutes == 0 && data.seconds <= 5) {
+              
+                    setTimeout(function() {
+                        window.location.href = '/home/'; 
+                    }, 1000);
+                    leaveRoom(roomName);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error('Error fetching remaining time:', textStatus, errorThrown);
+            }
+        });
+    }
+    
+    setInterval(updateRemainingTime, 1000);
+
+    function leaveRoom(roomId) {
+        fetch('/leave-room/' + roomId + '/', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                
+            },
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.href = '/home'; 
+               
+            }
+        })
+    }
+    
+        const leaveButton = document.querySelector('#leave-room-btn');
+        leaveButton.addEventListener('click', function(event) {
+            event.preventDefault() 
+ 
+            leaveRoom(roomName);
+        });
+        const user_count = document.getElementById('user-count');
+        if(user_count){
+            const roomUsersCount = parseInt(user_count.getAttribute('data-room-users-count'));
+            user_count.innerText = roomUsersCount
+            
+        }
+        function handlePageLeave(roomId) {
+            leaveRoom(roomId);
+        }
+        window.onbeforeunload = function() {
+            handlePageLeave(roomName);
+        };
+
+
+        
+        const w_socket = new WebSocket(  'ws://'
+        +'127.0.0.1:8001'
+        + '/ws/whiteboard/'
+        + roomName
+        +'/');
+
+        const canvas = document.getElementById('whiteboard');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let x1,y1;
+
+        
+        canvas.addEventListener("mousedown", (e) => {
+            init(e);
+            })
+        canvas.addEventListener("mousemove", (e) => {
+            draw(e);
+        })
+  
+        canvas.addEventListener("mouseup", (e) => {
+            isDrawing = false;
+        });
+    
+        function init(e) {
+            x1 = e.offsetX; 
+            y1 = e.offsetY;
+         
+            isDrawing = true;
+            }
+     
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const newX = e.offsetX;
+            const newY = e.offsetY;
+
+            if (isDrawing) {
+            ctx.beginPath();
+            ctx.moveTo(x1, y1); 
+            ctx.lineTo(newX, newY);   
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.closePath()
+
+            
+            
+            const coordinates = { startX: x1, startY: y1, endX: newX, endY: newY };
+            x1 = e.offsetX; 
+            y1 = e.offsetY;
+
+            sendDrawMessage(coordinates);
+
+            }
+        }
+
+    
+        function drawOnCanvas(coordinates) {
+            if (!coordinates) {
+                console.error('Invalid coordinates:', coordinates);
+                return;
+            }
+            const newX = coordinates.x;
+            const newY = coordinates.y;
+            const { startX, startY, endX, endY } = coordinates;
+
+            ctx.beginPath();
+            ctx.moveTo(startX, startY); 
+            ctx.lineTo(endX, endY); 
+            ctx.strokeStyle = 'black'; 
+            ctx.lineWidth = 2; 
+            ctx.stroke();   
+            ctx.closePath()
+           
+            }
+        
+
+
+        function sendDrawMessage(coordinates) {
+            const data = {
+                'message': {
+                    'action': 'draw',
+                    'coordinates': coordinates
+                },   
+                'roomName': roomName
+            };
+            w_socket.send(JSON.stringify(data));
+        }
+        
+        // servardaki geri dönen bilgiye göre frontend ayarlamak için kullanılır.
+        w_socket.onmessage = function (e) {
+            const data = JSON.parse(e.data);
+            const message = data["message"];
+
+            drawOnCanvas(message);     
+        }
+
+        w_socket.onclose = function (e) {
+            console.error('WebSocket connection closed unexpectedly.');
+           
+        };
+
+        let existingCoordinates = [];
+        function drawCoordinates() {
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "/get_coordinates/" + roomName, true); // Replace roomId with the actual room ID
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    var response= JSON.parse(xhr.responseText);
+                    var coordinates = [];
+                    
+                    $.each(response, function(index, point) {
+                        var xStr = point['x'];
+                        var yStr = point['y'];
+                        var x = parseInt(xStr.match(/\d+/)[0]);
+                        var y = parseInt(yStr.match(/\d+/)[0]);
+                        coordinates.push({x: x, y: y});
+                    
+                });
+                drawLine(coordinates)
+            }
+        };
+        xhr.send();
+    }
+   
+    function drawLine(coordinates) {
+        ctx.beginPath();
+        ctx.moveTo(coordinates[0].x, coordinates[0].y);
+        for (var i = 1; i < coordinates.length; i++) {
+            ctx.lineTo(coordinates[i].x, coordinates[i].y);
+        }
+        console.log(coordinates[0].x, coordinates[0].y)
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 2; 
+        ctx.stroke();
+        ctx.closePath()
+     
+ 
+    }
+    $(document).ready(function() {
+        drawCoordinates()
+    })
+
+    // Clear WhiteBoard
+    const clearBtn = document.getElementById("whiteboard_clear_btn");
+    const delete_draw = new WebSocket(  'ws://'
+        +'127.0.0.1:8001'
+        + '/ws/whiteboard_delete/'
+        + roomName
+        +'/')
+        delete_draw.onopen = function() {
+            console.log('delete opened!')}
+    clearBtn.addEventListener('click', () => {
+        var message = {
+                'roomName': roomName // Replace 'your-room-id' with the actual room ID
+            };
+            delete_draw.send(JSON.stringify(message));
+    })
+    delete_draw.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            const message = data.message;
+            console.log(message);
+            if (message.action === 'delete') {
+                const room_id = message.room_id;
+                clearCanvas();
+            }
+    };
+
+    function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    delete_draw.onclose = function(event) {
+        console.log('WebSocket connection closed');
+    };
+  
+
+    // Above for Audio sending
+ 
+    
+   
+    const audio_btn = document.getElementById("speakButton")
+    let localStream
+    let isStreaming = false;
+    let peer;
+    const audio_socket = new WebSocket('ws://'
+                +'127.0.0.1:8001'
+                + '/ws/voice/'
+                + roomName
+                +'/')
+    audio_socket.onopen =  () => {
+                console.log("asşkdfşaskdf")
+               // audio_socket.send(JSON.stringify({ sdp: peer.localDescription.sdp }));
+            };
+    audio_socket.onmessage = async (event) => {
+                const offer = event.data;
+                console.log(offer);
+                try {
+                    if (!peer) {
+                    createPeerConnection();
+                    }
+                 
+
+                    const modifiedSDP = offer.replace(/a=setup:actpass/g, 'a=setup:active');
+                    await peer.setRemoteDescription(new RTCSessionDescription({ sdp: modifiedSDP, type: 'answer' }));
+                    console.log("Uzak tanımlama başarılı.");
+                    const answer = await peer.createAnswer();
+                    await peer.setLocalDescription(answer);
+                    
+                    // Cevabı karşı tarafa gönder
+                    audio_socket.send({ type: 'answer', sdp: peer.localDescription.sdp });
+                    console.log("Cevap gönderildi:", peer.localDescription.sdp);
+                } catch (error) {
+                console.error('Uzak tanımlamada hata:', error);
+            }
+            };
+
+    const configuration = {
+        iceServers: [
+            { urls: "stun:stun.l.google.com:19302" },
+            { urls: "stun:stun.services.mozilla.com" },
+            // Diğer STUN sunucularını buraya ekleyebilirsiniz.
+        ],
+        };
+    function createPeerConnection() {
+        peer = new RTCPeerConnection(configuration);
+
+        // ICE bağlantı durumu değişikliklerini izleme
+        peer.oniceconnectionstatechange = (event) => {
+            console.log("ICE bağlantı durumu değişti:", peer.iceConnectionState);
+
+            if (peer.iceConnectionState === "failed") {
+                console.log("ICE bağlantısı başarısız oldu. Yeniden başlatılıyor...");
+                // Yeniden başlatma veya başka bir işlem yapılabilir.
+                createPeerConnection();
+            }
+        };
+
+        console.log("Peer bağlantısı oluşturuldu.");
+    }
+
+    audio_btn.addEventListener('click', async (e) => {
+        e.preventDefault()
+       
+        if (!isStreaming) {
+        try {
+           
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            localStream = stream;
+            audio_btn.textContent = 'Konuşmayı Durdur';
+            audio_btn.style.backgroundColor = 'gray';
+        
+            if (!peer) {
+                createPeerConnection();
+            }
+
+            peer.addTrack(stream.getAudioTracks()[0], stream);
+
+            peer.addEventListener('track', async (event) => {
+                const remoteStream = new MediaStream();
+                remoteStream.addTrack(event.track);
+                const audio = new Audio();
+                audio.srcObject = remoteStream;
+                audio.play();
+            });
+
+            const offer = await peer.createOffer();
+            await peer.setLocalDescription(offer);
+            
+            // audio_socket.send(JSON.stringify({ sdp: peer.localDescription.sdp }));
+            audio_socket.send(peer.localDescription.sdp );
+            console.log(peer.localDescription.sdp)
+
+         
+            isStreaming = true;
+            
+        }catch (error) {
+            console.error('Hata:', error);
+
+        }}
+        else {
+                localStream.getTracks().forEach(track => track.stop());
+                audio_btn.textContent = 'Konuş';
+                audio_btn.style.backgroundColor = '';
+                isStreaming = false;
+            }
+    });
+
+    
+</script>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "layout.html"%}
+{%block  navbar_button%} <a class="home-page-nav-btn" href="{%url 'home'%}">Main</a> {%endblock%}
+{%block  navbar3_button%} <a class="home-page-nav-btn logout" style="margin-left: 20px;" href="{%url 'logout'%}">Logout</a> {%endblock%}
+
+{% block body%}
+{% if message %}
+<div id="myModal">
+  {% if "successfully changed" in message %}
+    <div class="alert alert-success" role="alert">
+      <h4 class="alert-heading">Well done!</h4>
+      <p>{{ message }}</p>
+      <div class="close" onclick="">&times;</div>
+    </div>
+  {% elif "Passwords do not match" in message %}
+    <div class="alert alert-danger" role="alert">
+      <h4 class="alert-heading">Error!</h4>
+      <div class="msg-context">
+      <p>{{ message }}</p>
+      <div class="close" onclick="">&times;</div>
+        </div>
+    </div>
+  {% endif %}
+</div>
+{% endif %}
+{%if user.is_authenticated%}
+<section class="signup_page">
+    <h2>Profile</h2>
+    <form method="post" class="signup_form">
+        {% csrf_token %}
+        <label>Username</label>
+        <input type="text" name="u_username" value="{{ user.username }}" required>
+        <label>Email address</label>
+        <input type="email" name="u_email" value="{{ user.email }}" required>
+        <label>Password</label>
+        <input type="password" name="u_password" required>
+        <label>Confirm Password</label>
+        <input type="password" name="u_password2" required>
+        <button>Update Profile</button>
+    </form>
+</section>
+
+
+{%endif%}
+{%endblock%}
+{% block script %}
+<script>
+    
+    const closeBtn = document.getElementsByClassName("close")[0];
+    closeBtn.addEventListener("click", function() {
+        const modal = document.getElementById("myModal");
+        modal.style.display = "none";
+    });
+</script>
+{% endblock %}
